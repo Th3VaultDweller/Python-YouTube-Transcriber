@@ -1,15 +1,17 @@
 import os
-import time
+from timeit import default_timer as timer
 
 import whisper
 from pytube import YouTube
 from tqdm import tqdm
 
+start_app_time = timer()  # отсчёт с начала работы программы
+
 # определяем url видео и скачиваем
 video_urls = {
-    "https://www.youtube.com/shorts/wt4Ct-aW6tQ?feature=share",
-    "https://www.youtube.com/shorts/SMB1TsTJYjY?feature=share",
-    "https://www.youtube.com/shorts/Fogu5ovZoDM?feature=share",
+    "https://youtu.be/uFfiq8Ob-hc",
+    "https://youtu.be/lluGKSTb6XA",
+    "https://youtu.be/g174qjV_R8w",
 }
 
 for i, video_url in enumerate(video_urls):
@@ -56,7 +58,8 @@ num_files = sum(
 )
 
 # Транскрибируем файлы и выводим прогресс-бар
-with tqdm(total=num_files, desc="\nTranscribing Files") as pbar:
+print(f"Начинаю создание текста...\n")
+with tqdm(total=num_files, desc="\nГотовность текста") as pbar:
     for dirpath, dirnames, filenames in os.walk(root_folder):
         for filename in filenames:
             if filename.endswith(".mp3"):
@@ -69,3 +72,7 @@ with tqdm(total=num_files, desc="\nTranscribing Files") as pbar:
                 with open(os.path.join(dirpath, filename_no_ext + ".txt"), "w") as f:
                     f.write(transcription)
                 pbar.update(1)
+
+overall_app_time = timer() - start_app_time  # общий подсчёт времени
+
+print(f"\n[INFO] Общее время работы програамы: {round(overall_app_time)} секунд(а).\n")
