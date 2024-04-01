@@ -9,9 +9,7 @@ start_app_time = timer()  # отсчёт с начала работы прогр
 
 # определяем url видео и скачиваем
 video_urls = {
-    "https://youtu.be/uFfiq8Ob-hc",
-    "https://youtu.be/lluGKSTb6XA",
-    "https://youtu.be/g174qjV_R8w",
+    "https://youtu.be/JSXJyLaP-4s",
 }
 
 for i, video_url in enumerate(video_urls):
@@ -58,8 +56,8 @@ num_files = sum(
 )
 
 # Транскрибируем файлы и выводим прогресс-бар
-print(f"Начинаю создание текста...\n")
-with tqdm(total=num_files, desc="\nГотовность текста") as pbar:
+print(f"[INFO] Начинаю создание текста...\n")
+with tqdm(total=num_files, desc="\n[INFO] Готовность текста") as pbar:
     for dirpath, dirnames, filenames in os.walk(root_folder):
         for filename in filenames:
             if filename.endswith(".mp3"):
