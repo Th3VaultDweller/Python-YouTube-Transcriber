@@ -73,4 +73,4 @@ with tqdm(total=num_files, desc="\n[INFO] Готовность текста") as
 
 overall_app_time = timer() - start_app_time  # общий подсчёт времени
 
-print(f"\n[INFO] Общее время работы програамы: {round(overall_app_time)} секунд(а).\n")
+print(f"\n[INFO] Работа завершена.\nОбщее время работы программы: {round(overall_app_time)} секунд(а).\n")
