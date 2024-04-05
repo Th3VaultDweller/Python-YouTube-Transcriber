@@ -9,7 +9,7 @@ start_app_time = timer()  # отсчёт с начала работы прогр
 
 # определяем url видео и скачиваем
 video_urls = {
-    "https://youtu.be/JSXJyLaP-4s",
+    "https://youtu.be/3Xu0j56dhBE",
 }
 
 for i, video_url in enumerate(video_urls):
@@ -45,7 +45,7 @@ for i, video_url in enumerate(video_urls):
 # определяем папку со скачанными файлами
 root_folder = "D:\YandexDisk\Education\IT\Python\Learning Python\Python-YouTube-Transcriber\downloaded_audio"
 
-model = whisper.load_model("medium")
+model = whisper.load_model("large") # выбираем между medium и large
 
 # определяем количество файлов в папке и в подпапках
 num_files = sum(
