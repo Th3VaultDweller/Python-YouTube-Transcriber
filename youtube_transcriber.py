@@ -5,8 +5,6 @@ import whisper
 from pytube import YouTube
 from tqdm import tqdm
 
-start_app_time = timer()  # отсчёт с начала работы программы
-
 
 def download_audio():
     """Скачивает аудиофайл с YouTube по заданному url-адресу"""
@@ -53,9 +51,12 @@ def download_audio():
 
 def transcribe_audio():
     """Транскрибирует аудиофайл"""
+
     # выбираем модель Whisper
     model = whisper.load_model(
-        input(f"\n[INFO] Укажите название модели (tiny, base, small, medium или large): ")
+        input(
+            f"\n[INFO] Укажите название модели (tiny, base, small, medium или large): "
+        )
     )
 
     # определяем папку со скачанными файлами
@@ -89,12 +90,13 @@ def transcribe_audio():
                     pbar.update(1)
 
 
+start_app_time = timer()  # отсчёт с начала работы программы
+
 download_audio()
 transcribe_audio()
 
 # def make_new_line():
 #     """Переносит каждое предложение в файле после точки, восклицательного или вопросительного знака на новую строку"""
-
 
 overall_app_time = timer() - start_app_time  # общий подсчёт времени
 
