@@ -45,7 +45,7 @@ for i, video_url in enumerate(video_urls):
 # определяем папку со скачанными файлами
 root_folder = "D:\YandexDisk\Education\IT\Python\Learning Python\Python-YouTube-Transcriber\downloaded_audio"
 
-model = whisper.load_model("large") # выбираем между medium и large
+model = whisper.load_model("large")  # выбираем между medium и large
 
 # определяем количество файлов в папке и в подпапках
 num_files = sum(
@@ -73,4 +73,6 @@ with tqdm(total=num_files, desc="\n[INFO] Готовность текста") as
 
 overall_app_time = timer() - start_app_time  # общий подсчёт времени
 
-print(f"\n[INFO] Работа завершена.\nОбщее время работы программы: {round(overall_app_time)} секунд(а).\n")
+print(
+    f"\n[INFO] Работа завершена.\nОбщее время работы программы: {round(overall_app_time)} секунд(а).\n"
+)
