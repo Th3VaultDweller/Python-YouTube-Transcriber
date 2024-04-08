@@ -84,7 +84,9 @@ def transcribe_audio():
                     # Записываем информацию в текстовый файл
                     filename_no_ext = os.path.splitext(filename)[0]
                     with open(
-                        os.path.join(dirpath, filename_no_ext + ".txt"), "w"
+                        os.path.join(dirpath, filename_no_ext + ".txt"),
+                        "w",
+                        encoding="utf-8",
                     ) as f:
                         f.write(transcription)
                     pbar.update(1)
@@ -92,7 +94,6 @@ def transcribe_audio():
 
 start_app_time = timer()  # отсчёт с начала работы программы
 
-download_audio()
 transcribe_audio()
 
 # def make_new_line():
