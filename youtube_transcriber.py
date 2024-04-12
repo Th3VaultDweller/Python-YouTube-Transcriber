@@ -49,6 +49,29 @@ def download_audio():
 #     """Создаёт метатаблицу в соответствии с вводом информации от пользователя"""
 
 
+def make_new_line():
+    """Переносит каждое предложение в файле после точки, восклицательного или вопросительного знака на новую строку"""
+    
+    search_period = "."
+    replace_period = ".\n"
+    search_exclamation = "!"
+    replace_exclamation = "!\n"
+    search_question = "?"
+    replace_question = "?\n"
+
+    file_name = input("Введите полный путь к текстовому файлу: ")
+    with open(file_name, "r", encoding="utf-8") as file:
+        data = file.read()
+        data = data.replace(search_period, replace_period)
+        data = data.replace(search_exclamation, replace_exclamation)
+        data = data.replace(search_question, replace_question)
+
+    with open(file_name, "w", encoding="utf-8") as file:
+        file.write(data)
+
+    file.close()
+
+
 def transcribe_audio():
     """Транскрибирует аудиофайл"""
 
@@ -60,7 +83,6 @@ def transcribe_audio():
     )
 
     # определяем папку со скачанными файлами
-
     root_folder = input(f"\n[INFO] Укажите полный путь к скачанным файлам: ")
 
     # определяем количество файлов в папке и в подпапках
@@ -94,10 +116,7 @@ def transcribe_audio():
 
 start_app_time = timer()  # отсчёт с начала работы программы
 
-transcribe_audio()
-
-# def make_new_line():
-#     """Переносит каждое предложение в файле после точки, восклицательного или вопросительного знака на новую строку"""
+make_new_line()
 
 overall_app_time = timer() - start_app_time  # общий подсчёт времени
 
