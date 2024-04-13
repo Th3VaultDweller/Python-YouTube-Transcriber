@@ -176,7 +176,7 @@ def transcribe_audio():
     )
 
     # транскрибируем файлы и выводим прогресс-бар
-    print(f"[INFO] Начинаю создание текста...\n")
+    print(f"\n[INFO] Начинаю создание текста...\n")
     with tqdm(total=num_files, desc="\n[INFO] Готовность текста") as pbar:
         for dirpath, dirnames, filenames in os.walk(root_folder):
             for filename in filenames:
