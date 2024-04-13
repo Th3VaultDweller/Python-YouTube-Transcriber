@@ -34,10 +34,10 @@ def create_meta_table(video_name):
                 )
             )
 
-        # указываем необходимую информацию о аудиофайле
-        author_name = input("[INFO] Имя автора: ")
-        author_sex = input("[INFO] Пол автора: ")
-        author_birth = input("[INFO] Дата рождения автора: ")
+        # указываем необходимую информацию об аудиофайле
+        speaker_name = input("[INFO] Имя автора: ")
+        speaker_sex = input("[INFO] Пол автора: ")
+        speaker_birth = input("[INFO] Дата рождения автора: ")
         speech_name = input("[INFO] Название доклада/лекции: ")
         speech_place_name = input("[INFO] Место записи речи: ")
         speech_type = input("[INFO] Тип текста: ")
@@ -50,9 +50,9 @@ def create_meta_table(video_name):
 
             writer.writerow(
                 (
-                    author_name,
-                    author_sex,
-                    author_birth,
+                    speaker_name,
+                    speaker_sex,
+                    speaker_birth,
                     speech_name,
                     speech_place_name,
                     speech_type,
@@ -66,9 +66,9 @@ def create_meta_table(video_name):
             {
                 video_name: (
                     {
-                        "author_name": author_name,
-                        "author_sex": author_sex,
-                        "author_birth": author_birth,
+                        "speaker_name": speaker_name,
+                        "speaker_sex": speaker_sex,
+                        "speaker_birth": speaker_birth,
                         "speech_name": speech_name,
                         "speech_place_name": speech_place_name,
                         "speech_type": speech_type,
