@@ -15,8 +15,9 @@ def create_meta_table(video_name):
 
     if q == "да" or "Да":
 
-        all_data = []
+        all_data = []  # создаём список для последующего заполнения json-файла
 
+        # создаём csv-таблицу
         with open(f"downloaded_audio\{video_name}.csv", "w", encoding="utf-8") as file:
             writer = csv.writer(file)
 
@@ -33,6 +34,7 @@ def create_meta_table(video_name):
                 )
             )
 
+        # указываем необходимую информацию о аудиофайле
         author_name = input("[INFO] Имя автора: ")
         author_sex = input("[INFO] Пол автора: ")
         author_birth = input("[INFO] Дата рождения автора: ")
@@ -42,6 +44,7 @@ def create_meta_table(video_name):
         speech_theme = input("[INFO] Тематика текста: ")
         speech_creation_date = input("[INFO] Дата создания текста: ")
 
+        # заполняем csv-таблицу
         with open(f"downloaded_audio\{video_name}.csv", "a", encoding="utf-8") as file:
             writer = csv.writer(file)
 
@@ -58,6 +61,7 @@ def create_meta_table(video_name):
                 )
             )
 
+        # заполняем список all_data
         all_data.append(
             {
                 video_name: (
@@ -75,8 +79,10 @@ def create_meta_table(video_name):
             }
         )
 
+        # и сохраняем как json-файл
         with open(f"downloaded_audio\{video_name}.json", "w", encoding="utf-8") as file:
             json.dump(all_data, file, indent=4, ensure_ascii=False)
+
     else:
         pass
 
@@ -126,6 +132,7 @@ def download_audio():
 def make_new_line(video_name):
     """Переносит каждое предложение в файле после точки, восклицательного или вопросительного знака на новую строку"""
 
+    # определяем необходимые знаки для поиска и замены
     search_period = "."
     replace_period = ".\n"
     search_exclamation = "!"
@@ -133,12 +140,14 @@ def make_new_line(video_name):
     search_question = "?"
     replace_question = "?\n"
 
+    # заменяем ранее обозначенные знаки
     with open(video_name, "r", encoding="utf-8") as file:
         data = file.read()
         data = data.replace(search_period, replace_period)
         data = data.replace(search_exclamation, replace_exclamation)
         data = data.replace(search_question, replace_question)
 
+    # сохраняем
     with open(video_name, "w", encoding="utf-8") as file:
         file.write(data)
 
@@ -166,7 +175,7 @@ def transcribe_audio():
         if filename.endswith(".mp3")
     )
 
-    # Транскрибируем файлы и выводим прогресс-бар
+    # транскрибируем файлы и выводим прогресс-бар
     print(f"[INFO] Начинаю создание текста...\n")
     with tqdm(total=num_files, desc="\n[INFO] Готовность текста") as pbar:
         for dirpath, dirnames, filenames in os.walk(root_folder):
@@ -186,6 +195,7 @@ def transcribe_audio():
                         f.write(transcription)
                     pbar.update(1)
 
+                    # делаем разделение на отдельные строки, если есть необходимость
                     q = input(
                         f"\n[INFO] Перенести каждое предложение после точки, восклицательного и вопросительного знака на новую строку? да/нет: "
                     )
@@ -203,6 +213,7 @@ def transcribe_audio():
 
 start_app_time = timer()  # отсчёт с начала работы программы
 
+download_audio()
 transcribe_audio()
 
 overall_app_time = timer() - start_app_time  # общий подсчёт времени
