@@ -104,10 +104,8 @@ def download_audio():
     url = input(f"\n[INFO] Вставьте ссылку на видео: ")
     video_urls.append(url)
 
-    # destination = input(f"\n[INFO] Укажите полный путь сохранения аудиофайла: ")
-
-    # проходимся по каждой ссылке из списка
-    for i, video_url in enumerate(video_urls):
+    # проходимся по каждой ссылке из списка и выводим прогресс бар
+    for i, video_url in enumerate(tqdm(video_urls, total=len(video_urls))):
         video_info = YouTube(video_url)
         print(i)
         print(f"\n[INFO] Скачиваю <<{video_info.title}>>\n")
@@ -128,7 +126,8 @@ def download_audio():
             Дата загруки: {video_info.publish_date}
             Обложка: {video_info.thumbnail_url}
             Количество просмотров: {video_info.views}
-            Продолжительность видео в секундах: {video_info.length}\n"""
+            Продолжительность видео в секундах: {video_info.length}\n
+            Источник: {video_url}\n"""
         )  # дополнительная информация о видеоролике
 
         out_file = video.download(output_path=f"downloaded_audio/{video_info.title}")
@@ -141,11 +140,11 @@ def download_audio():
         except FileExistsError:
             print(f"[INFO] Файл {video_info.title}.mp3 уже существует.")
 
-        # создаём метатаблицу в csv и json, передавая название аудиофайла
-        create_meta_table(video_info.title)
-
         # выводим результат
         print(f"\n[INFO] <<{video_info.title}>> успешно скачан.\n")
+
+        # создаём метатаблицу в csv и json, передавая название аудиофайла
+        create_meta_table(video_info.title)
 
 
 def make_new_line(video_name):
