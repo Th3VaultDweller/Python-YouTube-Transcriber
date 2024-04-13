@@ -100,9 +100,8 @@ def download_audio():
     """Скачивает аудиофайл с YouTube по заданному url-адресу"""
 
     # определяем url видео
-    video_urls = []
-    url = input(f"\n[INFO] Вставьте ссылку на видео: ")
-    video_urls.append(url)
+    url_input = input(f"\n[INFO] Вставьте ссылку на видео или несколько ссылок через запятую: ")
+    video_urls = url_input.split() # создаёт список из url-адресов
 
     # проходимся по каждой ссылке из списка и выводим прогресс бар
     for i, video_url in enumerate(tqdm(video_urls, total=len(video_urls))):
