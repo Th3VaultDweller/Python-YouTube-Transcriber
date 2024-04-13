@@ -186,13 +186,19 @@ def transcribe_audio():
                         f.write(transcription)
                     pbar.update(1)
 
-                    # q = input(
-                    #     f"\n[INFO] Перенести каждое предложение после точки, восклицательного и вопросительного знака на новую строку? да/нет: "
-                    # )
-                    # if q == "да" or "Да":
-                    #     make_new_line(filename_no_ext + ".txt")
-                    # else:
-                    #     pass
+                    q = input(
+                        f"\n[INFO] Перенести каждое предложение после точки, восклицательного и вопросительного знака на новую строку? да/нет: "
+                    )
+                    if q == "да" or "Да":
+                        try:
+                            make_new_line(filename_no_ext + ".txt")
+                        except FileNotFoundError:
+                            print(
+                                f"\n[INFO] Файл не найден в директории (FileNotFoundError)."
+                            )
+                            pass
+                    else:
+                        pass
 
 
 start_app_time = timer()  # отсчёт с начала работы программы
