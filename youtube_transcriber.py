@@ -3,22 +3,27 @@ import json
 import os
 from timeit import default_timer as timer
 
+import nltk
+import pymorphy2
 import whisper
+from nltk.tokenize import sent_tokenize, word_tokenize
 from pytube import YouTube
 from tqdm import tqdm
 
 
 def create_meta_table(video_name):
-    """Создаёт метатаблицу в соответствии с вводом информации от пользователя в формате csv и json"""
+    """Создаёт метатаблицу в формате csv и json в соответствии с вводом информации от пользователя"""
 
     q = input("[INFO] Создать метаблицу для данного аудиофайла? да/нет: ")
 
-    if q == "да" or "Да":
+    if q == "Да" or "да":
 
         all_data = []  # создаём список для последующего заполнения json-файла
 
         # создаём csv-таблицу
-        with open(f"downloaded_audio\{video_name}.csv", "w", encoding="utf-8") as file:
+        with open(
+            f"downloaded_audio\{video_name}\{video_name}.csv", "w", encoding="utf-8"
+        ) as file:
             writer = csv.writer(file)
 
             writer.writerow(
@@ -45,7 +50,9 @@ def create_meta_table(video_name):
         speech_creation_date = input("[INFO] Дата создания текста: ")
 
         # заполняем csv-таблицу
-        with open(f"downloaded_audio\{video_name}.csv", "a", encoding="utf-8") as file:
+        with open(
+            f"downloaded_audio\{video_name}\{video_name}.csv", "a", encoding="utf-8"
+        ) as file:
             writer = csv.writer(file)
 
             writer.writerow(
@@ -80,7 +87,9 @@ def create_meta_table(video_name):
         )
 
         # и сохраняем как json-файл
-        with open(f"downloaded_audio\{video_name}.json", "w", encoding="utf-8") as file:
+        with open(
+            f"downloaded_audio\{video_name}\{video_name}.json", "w", encoding="utf-8"
+        ) as file:
             json.dump(all_data, file, indent=4, ensure_ascii=False)
 
     else:
@@ -95,14 +104,21 @@ def download_audio():
     url = input(f"\n[INFO] Вставьте ссылку на видео: ")
     video_urls.append(url)
 
-    # указываем папку для сохранённых аудиофайлов и скачиваем файл
-    destination = input(f"\n[INFO] Укажите полный путь сохранения аудиофайла: ")
+    # destination = input(f"\n[INFO] Укажите полный путь сохранения аудиофайла: ")
 
     # проходимся по каждой ссылке из списка
     for i, video_url in enumerate(video_urls):
         video_info = YouTube(video_url)
         print(i)
         print(f"\n[INFO] Скачиваю <<{video_info.title}>>\n")
+
+        # указываем папку для сохранённых аудиофайлов и скачиваем файл
+        try:
+            print("[INFO] Создаю директорию для сохранения файлов...\n")
+            os.mkdir(f"./downloaded_audio/{video_info.title}")
+        except OSError as error:
+            print("[INFO] Директория уже существует.\n")
+            pass
 
         # берём из видеофайла только аудиодорожку
         video = YouTube(video_url).streams.filter(only_audio=True).first()
@@ -115,12 +131,15 @@ def download_audio():
             Продолжительность видео в секундах: {video_info.length}\n"""
         )  # дополнительная информация о видеоролике
 
-        out_file = video.download(output_path=destination)
+        out_file = video.download(output_path=f"downloaded_audio/{video_info.title}")
 
         # сохраняем
-        base, ext = os.path.splitext(out_file)
-        new_file = base + ".mp3"
-        os.rename(out_file, new_file)
+        try:
+            base, ext = os.path.splitext(out_file)
+            new_file = base + ".mp3"
+            os.rename(out_file, new_file)
+        except FileExistsError:
+            print(f"[INFO] Файл {video_info.title}.mp3 уже существует.")
 
         # создаём метатаблицу в csv и json, передавая название аудиофайла
         create_meta_table(video_info.title)
@@ -163,9 +182,12 @@ def transcribe_audio():
             f"\n[INFO] Укажите название модели (tiny, base, small, medium или large): "
         )
     )
-
-    # определяем папку со скачанными файлами
-    root_folder = input(f"\n[INFO] Укажите полный путь к скачанным файлам: ")
+    try:
+        root_folder = "downloaded_audio"
+    except:
+        root_folder = input(
+            "[INFO] Укажите директорию для аудиофайлов для транскрибирования: "
+        )
 
     # определяем количество файлов в папке и в подпапках
     num_files = sum(
@@ -201,7 +223,10 @@ def transcribe_audio():
                     )
                     if q == "да" or "Да":
                         try:
-                            make_new_line(filename_no_ext + ".txt")
+                            make_new_line(
+                                f"{root_folder}/{filename_no_ext}/{filename_no_ext}"
+                                + ".txt"
+                            )
                         except FileNotFoundError:
                             print(
                                 f"\n[INFO] Файл не найден в директории (FileNotFoundError)."
@@ -209,6 +234,16 @@ def transcribe_audio():
                             pass
                     else:
                         pass
+
+
+def make_allignment():
+    """Сегментирует текст на слова/токены и предложения"""
+
+    with open(video_name, "r", encoding="utf-8") as file:
+        text = file.read()
+        string = text.replace("\n", " ")
+        tokenized_text = word_tokenize(text)
+        sent_text = sent_tokenize(text)
 
 
 start_app_time = timer()  # отсчёт с начала работы программы
