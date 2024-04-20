@@ -239,7 +239,7 @@ def transcribe_audio():
                         pass
 
 
-def make_allignment(video_name):
+def make_alignment(video_name):
     """Сегментирует текст на слова/токены и предложения"""
 
     with open(video_name, "r", encoding="utf-8") as file:
@@ -337,11 +337,53 @@ def make_allignment(video_name):
     )
     print(text_data.head(20))
 
+    manual_alignment = []
+    for i in range(
+        len(alignments_list_full[0:20])
+    ):  # пока ограничиваемся несколькими первыми словоформами для тестирования
+        if len(alignments_list_full[i]) == 1:
+            manual_alignment.append(alignments_list_full[i][0])
+        if len(alignments_list_full[i]) > 1:
+            print(f"Словоформа: {tokenized_text[i]}")
+            print(f"Предложение: {sent_list_for_index[i]}")
+        for j in range(len(alignments_list_full[i])):
+            print(j, alignments_list_full[i][j])
+            manual_alignment.append(
+                alignments_list_full[i][int(0)]
+            )
+
+    tags_manual = []
+    lemmas_manual = []
+    pos_manual = []
+    for alignment in manual_alignment:
+        tags_manual.append(str(alignment.tag))
+        lemmas_manual.append(alignment.normal_form)
+        pos_manual.append(alignment.tag.POS)
+
+    alignment_table = pd.DataFrame(
+        data={
+            "предложение": sent_list_for_index[
+                0:20
+            ],  # в квадратных скобках указываем интервал
+            "словоформа": tokenized_text[0:20],
+            "варианты разметки": alignments_list_full[0:20],
+            "вероятная разметка": probable_alignment_full[0:20],
+            "ручная разметка": manual_alignment,
+            "лемма": lemmas_manual,
+            "часть речи": pos_manual,
+            "тэги": tags_manual,
+        },
+        index=[sent_list_for_index[0:20], tokenized_text[0:20]],
+    )
+    alignment_table.to_csv(video_name + "_table")
+
+
 start_app_time = timer()  # отсчёт с начала работы программы
 
 # download_audio()
 # transcribe_audio()
-make_allignment(
+
+make_alignment(
     "downloaded_audio\Python Programming 35 - How to Convert String to List using split\Python Programming 35 - How to Convert String to List using split.txt"
 )
 
