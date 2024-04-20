@@ -4,11 +4,14 @@ import os
 from timeit import default_timer as timer
 
 import nltk
+import pandas as pd
 import pymorphy2
 import whisper
 from nltk.tokenize import sent_tokenize, word_tokenize
 from pytube import YouTube
 from tqdm import tqdm
+
+nltk.download("punkt")
 
 
 def create_meta_table(video_name):
@@ -100,8 +103,10 @@ def download_audio():
     """Скачивает аудиофайл с YouTube по заданному url-адресу"""
 
     # определяем url видео
-    url_input = input(f"\n[INFO] Вставьте ссылку на видео или несколько ссылок через запятую: ")
-    video_urls = url_input.split() # создаёт список из url-адресов
+    url_input = input(
+        f"\n[INFO] Вставьте ссылку на видео или несколько ссылок через запятую: "
+    )
+    video_urls = url_input.split()  # создаёт список из url-адресов
 
     # проходимся по каждой ссылке из списка и выводим прогресс-бар
     for i, video_url in enumerate(tqdm(video_urls, total=len(video_urls))):
@@ -234,7 +239,7 @@ def transcribe_audio():
                         pass
 
 
-def make_allignment():
+def make_allignment(video_name):
     """Сегментирует текст на слова/токены и предложения"""
 
     with open(video_name, "r", encoding="utf-8") as file:
@@ -242,12 +247,104 @@ def make_allignment():
         string = text.replace("\n", " ")
         tokenized_text = word_tokenize(text)
         sent_text = sent_tokenize(text)
+        print(tokenized_text[0:5])
+        print(sent_text[0:5])
 
+        tokenized_sent = []
+        for sent in sent_text:
+            tokenized_sent.append(word_tokenize(sent))
+            print(tokenized_sent)
+
+    alignments_list = [[] for x in range(len(sent_text))]
+    pos_list = [[] for x in range(len(sent_text))]
+
+    # проверяем длину списков
+    print(
+        f"Длина списка разметок: {len(alignments_list)},\nДлина списка частей речи: {len(pos_list)}"
+    )
+
+    morph = pymorphy2.MorphAnalyzer()
+
+    for i in range(len(tokenized_sent)):
+        for j in range(len(tokenized_sent[i])):
+            alignments_list[i].append(morph.parse(tokenized_sent[i][j]))
+    print(tokenized_sent[0])
+    print(alignments_list[0])
+
+    probable_alignment = [[] for x in range(len(alignments_list))]
+    print(len(probable_alignment))
+
+    for i in range(len(alignments_list)):
+        for j in range(len(alignments_list[i])):
+            probable_alignment[i].append(alignments_list[i][j][0])
+    print(probable_alignment[0])
+
+    tags = [[] for x in range(len(probable_alignment))]
+    lemmas = [[] for x in range(len(probable_alignment))]
+    pos = [[] for x in range(len(probable_alignment))]
+    for i in range(len(probable_alignment)):
+        for j in range(len(probable_alignment[i])):
+            tags[i].append(probable_alignment[i][j].tag)
+            lemmas[i].append(probable_alignment[i][j].normal_form)
+            pos[i].append(probable_alignment[i][j].tag.POS)
+
+    text_data_per_sent = pd.DataFrame(
+        data={
+            "предложение": sent_text,
+            "словоформа": tokenized_sent,
+            "варианты разметки": alignments_list,
+            "вероятная разметка": probable_alignment,
+            "часть речи": pos,
+            "лемма": lemmas,
+            "тэги": tags,
+        }
+    )
+
+    text_data_per_sent.head()
+
+    sent_list_for_index = []
+    for i in range(len(tokenized_sent)):
+        for j in range(len(tokenized_sent[i])):
+            sent_list_for_index.append(sent_text[i])
+
+    alignments_list_full = []
+    pos_list_full = []
+    for word in tokenized_text:
+        alignments_list_full.append(morph.parse(word))
+        pos_list_full.append(morph.parse(word)[0].tag.POS)
+
+    probable_alignment_full = [i[0] for i in alignments_list_full]
+
+    tags_full = []
+    lemmas_full = []
+    pos_full = []
+    for alignment in probable_alignment_full:
+        tags_full.append(alignment.tag)
+        lemmas_full.append(alignment.normal_form)
+        pos_full.append(alignment.tag.POS)
+
+    text_data = pd.DataFrame(
+        data={
+            "предложение": sent_list_for_index,
+            "словоформа": tokenized_text,
+            "варианты разметки": alignments_list_full,
+            "вероятная разметка": probable_alignment_full,
+            "лемма": lemmas_full,
+            "тэги": tags_full,
+            "часть речи": pos_full,
+        },
+        index=[sent_list_for_index, tokenized_text],
+    )
+    print(text_data.head(20))
 
 start_app_time = timer()  # отсчёт с начала работы программы
 
-download_audio()
-transcribe_audio()
+# download_audio()
+# transcribe_audio()
+make_allignment(
+    "downloaded_audio\Python Programming 35 - How to Convert String to List using split\Python Programming 35 - How to Convert String to List using split.txt"
+)
+
 
 overall_app_time = timer() - start_app_time  # общий подсчёт времени
 
