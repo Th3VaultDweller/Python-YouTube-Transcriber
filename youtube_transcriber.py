@@ -253,14 +253,14 @@ def make_alignment(video_name):
         tokenized_sent = []
         for sent in sent_text:
             tokenized_sent.append(word_tokenize(sent))
-            print(tokenized_sent)
+            # print(tokenized_sent)
 
     alignments_list = [[] for x in range(len(sent_text))]
     pos_list = [[] for x in range(len(sent_text))]
 
     # проверяем длину списков
     print(
-        f"Длина списка разметок: {len(alignments_list)},\nДлина списка частей речи: {len(pos_list)}"
+        f"\n[INFO] Длина списка разметок: {len(alignments_list)},\n[INFO] Длина списка частей речи: {len(pos_list)}"
     )
 
     morph = pymorphy2.MorphAnalyzer()
@@ -268,16 +268,16 @@ def make_alignment(video_name):
     for i in range(len(tokenized_sent)):
         for j in range(len(tokenized_sent[i])):
             alignments_list[i].append(morph.parse(tokenized_sent[i][j]))
-    print(tokenized_sent[0])
-    print(alignments_list[0])
+    # print(tokenized_sent[0])
+    # print(alignments_list[0])
 
     probable_alignment = [[] for x in range(len(alignments_list))]
-    print(len(probable_alignment))
+    # print(len(probable_alignment))
 
     for i in range(len(alignments_list)):
         for j in range(len(alignments_list[i])):
             probable_alignment[i].append(alignments_list[i][j][0])
-    print(probable_alignment[0])
+    # print(probable_alignment[0])
 
     tags = [[] for x in range(len(probable_alignment))]
     lemmas = [[] for x in range(len(probable_alignment))]
@@ -290,13 +290,13 @@ def make_alignment(video_name):
 
     text_data_per_sent = pd.DataFrame(
         data={
-            "предложение": sent_text,
-            "словоформа": tokenized_sent,
-            "варианты разметки": alignments_list,
-            "вероятная разметка": probable_alignment,
-            "часть речи": pos,
-            "лемма": lemmas,
-            "тэги": tags,
+            "Предложение": sent_text,
+            "Словоформа": tokenized_sent,
+            "Варианты разметки": alignments_list,
+            "Вероятная разметка": probable_alignment,
+            "Часть речи": pos,
+            "Лемма": lemmas,
+            "Тэги": tags,
         }
     )
 
@@ -325,17 +325,17 @@ def make_alignment(video_name):
 
     text_data = pd.DataFrame(
         data={
-            "предложение": sent_list_for_index,
-            "словоформа": tokenized_text,
-            "варианты разметки": alignments_list_full,
-            "вероятная разметка": probable_alignment_full,
-            "лемма": lemmas_full,
-            "тэги": tags_full,
-            "часть речи": pos_full,
+            "Предложение": sent_list_for_index,
+            "Словоформа": tokenized_text,
+            "Варианты разметки": alignments_list_full,
+            "Вероятная разметка": probable_alignment_full,
+            "Лемма": lemmas_full,
+            "Тэги": tags_full,
+            "Часть речи": pos_full,
         },
         index=[sent_list_for_index, tokenized_text],
     )
-    print(text_data.head(20))
+    # print(text_data.head(20))
 
     manual_alignment = []
     for i in range(
@@ -344,13 +344,13 @@ def make_alignment(video_name):
         if len(alignments_list_full[i]) == 1:
             manual_alignment.append(alignments_list_full[i][0])
         if len(alignments_list_full[i]) > 1:
-            print(f"Словоформа: {tokenized_text[i]}")
-            print(f"Предложение: {sent_list_for_index[i]}")
+            print(f"\n[INFO]Словоформа: {tokenized_text[i]}\n")
+            print(f"[INFO] Предложение: {sent_list_for_index[i]}")
         for j in range(len(alignments_list_full[i])):
             print(j, alignments_list_full[i][j])
-            manual_alignment.append(
-                alignments_list_full[i][int(0)]
-            )
+            manual_alignment.append(alignments_list_full[i][int(0)])
+
+    print(len(manual_alignment))
 
     tags_manual = []
     lemmas_manual = []
@@ -362,20 +362,20 @@ def make_alignment(video_name):
 
     alignment_table = pd.DataFrame(
         data={
-            "предложение": sent_list_for_index[
+            "Предложение": sent_list_for_index[
                 0:20
             ],  # в квадратных скобках указываем интервал
-            "словоформа": tokenized_text[0:20],
-            "варианты разметки": alignments_list_full[0:20],
-            "вероятная разметка": probable_alignment_full[0:20],
-            "ручная разметка": manual_alignment,
-            "лемма": lemmas_manual,
-            "часть речи": pos_manual,
-            "тэги": tags_manual,
+            "Словоформа": tokenized_text[0:20],
+            "Варианты разметки": alignments_list_full[0:20],
+            "Вероятная разметка": probable_alignment_full[0:20],
+            "Ручная разметка": manual_alignment,
+            "Лемма": lemmas_manual,
+            "Часть речи": pos_manual,
+            "Тэги": tags_manual,
         },
         index=[sent_list_for_index[0:20], tokenized_text[0:20]],
     )
-    alignment_table.to_csv(video_name + "_table")
+    alignment_table.to_csv("table" + video_name)
 
 
 start_app_time = timer()  # отсчёт с начала работы программы
