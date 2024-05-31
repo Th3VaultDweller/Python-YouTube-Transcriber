@@ -104,7 +104,7 @@ def download_audio():
 
     # определяем url видео
     url_input = input(
-        f"\n[INFO] Вставьте ссылку на видео или несколько ссылок через запятую: "
+        f"\n[INFO] Вставьте ссылку на видео или несколько ссылок через пробел: "
     )
     video_urls = url_input.split()  # создаёт список из url-адресов
 
@@ -113,6 +113,11 @@ def download_audio():
         video_info = YouTube(video_url)
         print(i)
         print(f"\n[INFO] Скачиваю <<{video_info.title}>>\n")
+
+        character_to_find = "|"
+        character_to_replace = "-"
+        if character_to_find in video_info.title:
+            video_info.title.replace(character_to_find, character_to_replace)
 
         # указываем папку для сохранённых аудиофайлов и скачиваем файл
         try:
@@ -130,7 +135,7 @@ def download_audio():
             Дата загруки: {video_info.publish_date}
             Обложка: {video_info.thumbnail_url}
             Количество просмотров: {video_info.views}
-            Продолжительность видео в секундах: {video_info.length}\n
+            Продолжительность видео в секундах: {video_info.length}
             Источник: {video_url}\n"""
         )  # дополнительная информация о видеоролике
 
@@ -381,11 +386,11 @@ def make_alignment(video_name):
 start_app_time = timer()  # отсчёт с начала работы программы
 
 # download_audio()
-# transcribe_audio()
+transcribe_audio()
 
-make_alignment(
-    "downloaded_audio\Python Programming 35 - How to Convert String to List using split\Python Programming 35 - How to Convert String to List using split.txt"
-)
+# make_alignment(
+#     "downloaded_audio\Python Programming 35 - How to Convert String to List using split\Python Programming 35 - How to Convert String to List using split.txt"
+# )
 
 
 overall_app_time = timer() - start_app_time  # общий подсчёт времени
