@@ -3,22 +3,30 @@ import json
 import os
 from timeit import default_timer as timer
 
+import nltk
+import pandas as pd
+import pymorphy2
 import whisper
+from nltk.tokenize import sent_tokenize, word_tokenize
 from pytube import YouTube
 from tqdm import tqdm
 
+nltk.download("punkt")
+
 
 def create_meta_table(video_name):
-    """Создаёт метатаблицу в соответствии с вводом информации от пользователя в формате csv и json"""
+    """Создаёт метатаблицу в формате csv и json в соответствии с вводом информации от пользователя"""
 
     q = input("[INFO] Создать метаблицу для данного аудиофайла? да/нет: ")
 
-    if q == "да" or "Да":
+    if q == "Да" or "да":
 
         all_data = []  # создаём список для последующего заполнения json-файла
 
         # создаём csv-таблицу
-        with open(f"downloaded_audio\{video_name}.csv", "w", encoding="utf-8") as file:
+        with open(
+            f"downloaded_audio\{video_name}\{video_name}.csv", "w", encoding="utf-8"
+        ) as file:
             writer = csv.writer(file)
 
             writer.writerow(
@@ -45,7 +53,9 @@ def create_meta_table(video_name):
         speech_creation_date = input("[INFO] Дата создания текста: ")
 
         # заполняем csv-таблицу
-        with open(f"downloaded_audio\{video_name}.csv", "a", encoding="utf-8") as file:
+        with open(
+            f"downloaded_audio\{video_name}\{video_name}.csv", "a", encoding="utf-8"
+        ) as file:
             writer = csv.writer(file)
 
             writer.writerow(
@@ -80,7 +90,9 @@ def create_meta_table(video_name):
         )
 
         # и сохраняем как json-файл
-        with open(f"downloaded_audio\{video_name}.json", "w", encoding="utf-8") as file:
+        with open(
+            f"downloaded_audio\{video_name}\{video_name}.json", "w", encoding="utf-8"
+        ) as file:
             json.dump(all_data, file, indent=4, ensure_ascii=False)
 
     else:
@@ -91,18 +103,29 @@ def download_audio():
     """Скачивает аудиофайл с YouTube по заданному url-адресу"""
 
     # определяем url видео
-    video_urls = []
-    url = input(f"\n[INFO] Вставьте ссылку на видео: ")
-    video_urls.append(url)
+    url_input = input(
+        f"\n[INFO] Вставьте ссылку на видео или несколько ссылок через пробел: "
+    )
+    video_urls = url_input.split()  # создаёт список из url-адресов
 
-    # указываем папку для сохранённых аудиофайлов и скачиваем файл
-    destination = input(f"\n[INFO] Укажите полный путь сохранения аудиофайла: ")
-
-    # проходимся по каждой ссылке из списка
-    for i, video_url in enumerate(video_urls):
+    # проходимся по каждой ссылке из списка и выводим прогресс-бар
+    for i, video_url in enumerate(tqdm(video_urls, total=len(video_urls))):
         video_info = YouTube(video_url)
         print(i)
         print(f"\n[INFO] Скачиваю <<{video_info.title}>>\n")
+
+        character_to_find = "|"
+        character_to_replace = "-"
+        if character_to_find in video_info.title:
+            video_info.title.replace(character_to_find, character_to_replace)
+
+        # указываем папку для сохранённых аудиофайлов и скачиваем файл
+        try:
+            print("[INFO] Создаю директорию для сохранения файлов...\n")
+            os.mkdir(f"./downloaded_audio/{video_info.title}")
+        except OSError as error:
+            print("[INFO] Директория уже существует.\n")
+            pass
 
         # берём из видеофайла только аудиодорожку
         video = YouTube(video_url).streams.filter(only_audio=True).first()
@@ -112,21 +135,25 @@ def download_audio():
             Дата загруки: {video_info.publish_date}
             Обложка: {video_info.thumbnail_url}
             Количество просмотров: {video_info.views}
-            Продолжительность видео в секундах: {video_info.length}\n"""
+            Продолжительность видео в секундах: {video_info.length}
+            Источник: {video_url}\n"""
         )  # дополнительная информация о видеоролике
 
-        out_file = video.download(output_path=destination)
+        out_file = video.download(output_path=f"downloaded_audio/{video_info.title}")
 
         # сохраняем
-        base, ext = os.path.splitext(out_file)
-        new_file = base + ".mp3"
-        os.rename(out_file, new_file)
-
-        # создаём метатаблицу в csv и json, передавая название аудиофайла
-        create_meta_table(video_info.title)
+        try:
+            base, ext = os.path.splitext(out_file)
+            new_file = base + ".mp3"
+            os.rename(out_file, new_file)
+        except FileExistsError:
+            print(f"[INFO] Файл {video_info.title}.mp3 уже существует.")
 
         # выводим результат
         print(f"\n[INFO] <<{video_info.title}>> успешно скачан.\n")
+
+        # создаём метатаблицу в csv и json, передавая название аудиофайла
+        create_meta_table(video_info.title)
 
 
 def make_new_line(video_name):
@@ -163,9 +190,12 @@ def transcribe_audio():
             f"\n[INFO] Укажите название модели (tiny, base, small, medium или large): "
         )
     )
-
-    # определяем папку со скачанными файлами
-    root_folder = input(f"\n[INFO] Укажите полный путь к скачанным файлам: ")
+    try:
+        root_folder = "downloaded_audio"
+    except:
+        root_folder = input(
+            "[INFO] Укажите директорию для аудиофайлов для транскрибирования: "
+        )
 
     # определяем количество файлов в папке и в подпапках
     num_files = sum(
@@ -201,7 +231,10 @@ def transcribe_audio():
                     )
                     if q == "да" or "Да":
                         try:
-                            make_new_line(filename_no_ext + ".txt")
+                            make_new_line(
+                                f"{root_folder}/{filename_no_ext}/{filename_no_ext}"
+                                + ".txt"
+                            )
                         except FileNotFoundError:
                             print(
                                 f"\n[INFO] Файл не найден в директории (FileNotFoundError)."
@@ -211,10 +244,154 @@ def transcribe_audio():
                         pass
 
 
+def make_alignment(video_name):
+    """Сегментирует текст на слова/токены и предложения"""
+
+    with open(video_name, "r", encoding="utf-8") as file:
+        text = file.read()
+        string = text.replace("\n", " ")
+        tokenized_text = word_tokenize(text)
+        sent_text = sent_tokenize(text)
+        print(tokenized_text[0:5])
+        print(sent_text[0:5])
+
+        tokenized_sent = []
+        for sent in sent_text:
+            tokenized_sent.append(word_tokenize(sent))
+            # print(tokenized_sent)
+
+    alignments_list = [[] for x in range(len(sent_text))]
+    pos_list = [[] for x in range(len(sent_text))]
+
+    # проверяем длину списков
+    print(
+        f"\n[INFO] Длина списка разметок: {len(alignments_list)},\n[INFO] Длина списка частей речи: {len(pos_list)}"
+    )
+
+    morph = pymorphy2.MorphAnalyzer()
+
+    for i in range(len(tokenized_sent)):
+        for j in range(len(tokenized_sent[i])):
+            alignments_list[i].append(morph.parse(tokenized_sent[i][j]))
+    # print(tokenized_sent[0])
+    # print(alignments_list[0])
+
+    probable_alignment = [[] for x in range(len(alignments_list))]
+    # print(len(probable_alignment))
+
+    for i in range(len(alignments_list)):
+        for j in range(len(alignments_list[i])):
+            probable_alignment[i].append(alignments_list[i][j][0])
+    # print(probable_alignment[0])
+
+    tags = [[] for x in range(len(probable_alignment))]
+    lemmas = [[] for x in range(len(probable_alignment))]
+    pos = [[] for x in range(len(probable_alignment))]
+    for i in range(len(probable_alignment)):
+        for j in range(len(probable_alignment[i])):
+            tags[i].append(probable_alignment[i][j].tag)
+            lemmas[i].append(probable_alignment[i][j].normal_form)
+            pos[i].append(probable_alignment[i][j].tag.POS)
+
+    text_data_per_sent = pd.DataFrame(
+        data={
+            "Предложение": sent_text,
+            "Словоформа": tokenized_sent,
+            "Варианты разметки": alignments_list,
+            "Вероятная разметка": probable_alignment,
+            "Часть речи": pos,
+            "Лемма": lemmas,
+            "Тэги": tags,
+        }
+    )
+
+    text_data_per_sent.head()
+
+    sent_list_for_index = []
+    for i in range(len(tokenized_sent)):
+        for j in range(len(tokenized_sent[i])):
+            sent_list_for_index.append(sent_text[i])
+
+    alignments_list_full = []
+    pos_list_full = []
+    for word in tokenized_text:
+        alignments_list_full.append(morph.parse(word))
+        pos_list_full.append(morph.parse(word)[0].tag.POS)
+
+    probable_alignment_full = [i[0] for i in alignments_list_full]
+
+    tags_full = []
+    lemmas_full = []
+    pos_full = []
+    for alignment in probable_alignment_full:
+        tags_full.append(alignment.tag)
+        lemmas_full.append(alignment.normal_form)
+        pos_full.append(alignment.tag.POS)
+
+    text_data = pd.DataFrame(
+        data={
+            "Предложение": sent_list_for_index,
+            "Словоформа": tokenized_text,
+            "Варианты разметки": alignments_list_full,
+            "Вероятная разметка": probable_alignment_full,
+            "Лемма": lemmas_full,
+            "Тэги": tags_full,
+            "Часть речи": pos_full,
+        },
+        index=[sent_list_for_index, tokenized_text],
+    )
+    # print(text_data.head(20))
+
+    manual_alignment = []
+    for i in range(
+        len(alignments_list_full[0:20])
+    ):  # пока ограничиваемся несколькими первыми словоформами для тестирования
+        if len(alignments_list_full[i]) == 1:
+            manual_alignment.append(alignments_list_full[i][0])
+        if len(alignments_list_full[i]) > 1:
+            print(f"\n[INFO]Словоформа: {tokenized_text[i]}\n")
+            print(f"[INFO] Предложение: {sent_list_for_index[i]}")
+        for j in range(len(alignments_list_full[i])):
+            print(j, alignments_list_full[i][j])
+            manual_alignment.append(alignments_list_full[i][int(0)])
+
+    print(len(manual_alignment))
+
+    tags_manual = []
+    lemmas_manual = []
+    pos_manual = []
+    for alignment in manual_alignment:
+        tags_manual.append(str(alignment.tag))
+        lemmas_manual.append(alignment.normal_form)
+        pos_manual.append(alignment.tag.POS)
+
+    alignment_table = pd.DataFrame(
+        data={
+            "Предложение": sent_list_for_index[
+                0:20
+            ],  # в квадратных скобках указываем интервал
+            "Словоформа": tokenized_text[0:20],
+            "Варианты разметки": alignments_list_full[0:20],
+            "Вероятная разметка": probable_alignment_full[0:20],
+            "Ручная разметка": manual_alignment,
+            "Лемма": lemmas_manual,
+            "Часть речи": pos_manual,
+            "Тэги": tags_manual,
+        },
+        index=[sent_list_for_index[0:20], tokenized_text[0:20]],
+    )
+    alignment_table.to_csv("table" + video_name)
+
+
 start_app_time = timer()  # отсчёт с начала работы программы
 
-download_audio()
+# download_audio()
 transcribe_audio()
+
+# make_alignment(
+#     "downloaded_audio\Python Programming 35 - How to Convert String to List using split\Python Programming 35 - How to Convert String to List using split.txt"
+# )
+
 
 overall_app_time = timer() - start_app_time  # общий подсчёт времени
 
